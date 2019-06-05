@@ -1,30 +1,42 @@
-node {
-    env.AWS_ECR_LOGIN=true
-    def newApp
-    def registry = 'plmzphoebus/node-docker'
-    def registryCredential = 'dockerhub'
-	
-	stage('Cloning Git') {
-		git 'https://github.com/plmzphoebus/node-docker.git'
-	}
-	stage('Build') {
-		sh 'npm install'
-	}
-	stage('Building image') {
-        docker.withRegistry( 'https://' + registry, registryCredential ) {
-		    def buildName = registry + ":$BUILD_NUMBER"
-            newApp = docker.build buildName
-            newApp.push()
-        }
-	}
-	stage('Registring image') {
-        docker.withRegistry( 'https://' + registry, registryCredential ) {
-    		newApp.push 'latest2'
-        }
-	}
-    stage('Removing image') {
-        sh "docker rmi $registry:$BUILD_NUMBER"
-        sh "docker rmi $registry:latest"
+pipeline {
+  environment {
+    registry = "plmzphoebus/node-docker"
+    registryCredential = 'dockerhub'
+    dockerImage = ''
+  }
+  agent any
+  tools {nodejs "node" }
+  stages {
+    stage('Cloning Git') {
+      steps {
+        git 'https://github.com/plmzphoebus/node-docker.git'
+      }
     }
-    
+    stage('Build') {
+       steps {
+         sh 'npm install'
+       }
+    }
+    stage('Building image') {
+      steps{
+        script {
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
+        }
+      }
+    }
+    stage('Deploy Image') {
+      steps{
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
+          }
+        }
+      }
+    }
+    stage('Remove Unused docker image') {
+      steps{
+        sh "docker rmi $registry:$BUILD_NUMBER"
+      }
+    }
+  }
 }
