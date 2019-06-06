@@ -2,7 +2,7 @@ pipeline {
   environment {
     registry = "plmzphoebus/node-docker"
     registryCredential = 'dockerhub'
-    def newApp
+    dockerImage = ''
   }
   agent any
   tools {nodejs "node" }
@@ -20,19 +20,15 @@ pipeline {
     stage('Building image') {
       steps{
         script {
-          docker.withRegistry( 'https://' + registry, registryCredential ) {
-            def buildName = registry + ":$BUILD_NUMBER"
-            newApp = docker.build buildName
-            newApp.push()
-          }
+          dockerImage = docker.build registry + ":$BUILD_NUMBER"
         }
       }
     }
     stage('Deploy Image') {
       steps{
-        script {
-          docker.withRegistry( 'https://' + registry, registryCredential ) {
-            newApp.push 'latest'
+         script {
+            docker.withRegistry( '', registryCredential ) {
+            dockerImage.push()
           }
         }
       }
@@ -40,7 +36,6 @@ pipeline {
     stage('Remove Unused docker image') {
       steps{
         sh "docker rmi $registry:$BUILD_NUMBER"
-        sh "docker rmi $registry:latest"
       }
     }
   }
