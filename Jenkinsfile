@@ -20,7 +20,7 @@ pipeline {
     stage('Building image') {
       steps{
         script {
-          docker.withDockerRegistry(registryCredential, registry) {
+          docker.withRegistry('https://hub.docker.com/r/plmzphoebus/node-docker', registryCredential) {
             dockerImage = docker.build(registry + ":$BUILD_NUMBER")
           }
         }
@@ -29,7 +29,7 @@ pipeline {
     stage('Deploy Image') {
       steps{
         script {
-          docker.withDockerRegistry(registryCredential, registry) {
+          docker.withRegistry('https://hub.docker.com/r/plmzphoebus/node-docker', registryCredential) {
             dockerImage.push()
           }
         }
