@@ -18,15 +18,19 @@ pipeline {
        }
     }
     stage('Building image') {
-      docker.withRegistry( 'https://' + registry, registryCredential ) {
-        def buildName = registry + ":$BUILD_NUMBER"
-        newApp = docker.build buildName
-        newApp.push()
+      steps{
+        docker.withRegistry( 'https://' + registry, registryCredential ) {
+          def buildName = registry + ":$BUILD_NUMBER"
+          newApp = docker.build buildName
+          newApp.push()
+        }
       }
     }
     stage('Deploy Image') {
-      docker.withRegistry( 'https://' + registry, registryCredential ) {
-        newApp.push 'latest'
+      steps{
+        docker.withRegistry( 'https://' + registry, registryCredential ) {
+          newApp.push 'latest'
+        }
       }
     }
     stage('Remove Unused docker image') {
