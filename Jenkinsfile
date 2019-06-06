@@ -19,17 +19,21 @@ pipeline {
     }
     stage('Building image') {
       steps{
-        docker.withRegistry( 'https://' + registry, registryCredential ) {
-          def buildName = registry + ":$BUILD_NUMBER"
-          newApp = docker.build buildName
-          newApp.push()
+        script {
+          docker.withRegistry( 'https://' + registry, registryCredential ) {
+            def buildName = registry + ":$BUILD_NUMBER"
+            newApp = docker.build buildName
+            newApp.push()
+          }
         }
       }
     }
     stage('Deploy Image') {
       steps{
-        docker.withRegistry( 'https://' + registry, registryCredential ) {
-          newApp.push 'latest'
+        script {
+          docker.withRegistry( 'https://' + registry, registryCredential ) {
+            newApp.push 'latest'
+          }
         }
       }
     }
